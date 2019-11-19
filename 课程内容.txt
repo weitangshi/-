@@ -1,0 +1,283 @@
+1.路由
+    vue init webpack name 
+
+    vue-router?Y 
+    ...
+
+
+    路由出口：<router-view></router-view>
+    路由跳转：<router-link to="/home" active-class="select">返回首页</router-link>
+
+    3.1 基础路由
+        //router/index.js 
+        import home from '../components/home'
+
+        routes:[
+            {
+                path:'/home',
+                component:home,
+            },
+            ...
+            {
+                path:"*",
+                redirect:"/home"
+            }
+        ]
+        
+
+
+    3.2 重定向 选中的导航 别名
+        一级重定向
+            {
+                path:"*",
+                redirect:"/home"
+            }
+        二级重定向
+            {
+                path:"",
+                redirect:"home"
+            }
+        选中的导航：active-class
+        别名：alias
+            {
+                path:"/movie",
+                alias:"/dianying",
+                component:movie
+            },
+    3.3 编程式导航
+        this.$router.push("/home") 在历史记录里面添加一条历史记录
+        this.$router.replace("/home") 使用新路径替换当前路径
+        this.$router.go(-1) 返回上一个历史记录的路径
+    3.4 嵌套路由
+        {
+            path:"/index",
+            component:index,
+            children:[
+                {
+                    path:"home",//不加/ 
+                    component:home
+                },
+                {
+                    path:"",//二级重定向
+                    redirect:"home"
+                }
+            ]
+        }
+
+    3.5 动态路由 
+        {
+            path:"/food-detail/:id",
+            component:detail
+        }
+        //detail .vue
+        this.$route.params.id
+
+
+    3.6 hash模式和history模式
+        区别：
+            hash模式：
+                1.采用的是window.onhashchange事件实现。
+                2.可以实现前进 后退 刷新。
+                3.比如这个URL：http://www.abc.com/#/hello, hash 的值为#/hello。
+                它的特点在于：hash 虽然出现URL中，但不会被包含在HTTP请求中，
+                对后端完全没有影响，因此改变hash不会重新加载页面
+            history模式：
+                1.采用的是利用了HTML5 History Interface 中新增的pushState() 和replaceState() 方法。
+                2.可以前进、后退，但是刷新有可能会出现404的报错
+                3.前端的url必须和实际向后端发起请求的url 一致，如http://www.abc.com/book/id 。
+                  如果后端缺少对/book/id 的路由处理，将返回404错误。 
+                  不过这种模式要玩好，还需要后台配置支持。因为我们的应用是个单页客户端应用，
+                  如果后台没有正确的配置，当用户在浏览器直接访问 http://oursite.com/user/id 就会返回 404，这就不好看了。
+
+                  所以呢，你要在服务端增加一个覆盖所有情况的候选资源：如果 URL 匹配不到任何静态资源，
+                  则应该返回同一个 index.html 页面，这个页面就是你 app 依赖的页面。
+
+
+    3.7 导航守卫
+        1.全局守卫
+            全局前置守卫 
+            router.beforeEach((to, from, next) => {
+            // ...
+            })
+            全局后置守卫
+            router.afterEach((to, from) => {
+            // ...
+            })
+        2.路由独享守卫
+            const router = new VueRouter({
+            routes: [
+                {
+                path: '/foo',
+                component: Foo,
+                beforeEnter: (to, from, next) => {
+                    // ...
+                }
+                }
+            ]
+            })
+        3.组件内的守卫
+            const Foo = {
+            template: `...`,
+            beforeRouteEnter (to, from, next) {
+                // 在渲染该组件的对应路由被 confirm 前调用
+                // 不！能！获取组件实例 `this`
+                // 因为当守卫执行前，组件实例还没被创建
+            },
+            beforeRouteUpdate (to, from, next) {
+                // 在当前路由改变，但是该组件被复用时调用
+                // 举例来说，对于一个带有动态参数的路径 /foo/:id，在 /foo/1 和 /foo/2 之间跳转的时候，
+                // 由于会渲染同样的 Foo 组件，因此组件实例会被复用。而这个钩子就会在这个情况下被调用。
+                // 可以访问组件实例 `this`
+            },
+            beforeRouteLeave (to, from, next) {
+                // 导航离开该组件的对应路由时调用
+                // 可以访问组件实例 `this`
+            }
+            }
+    3.8 过渡动效
+        <transition>
+            <router-view></router-view>
+        </transition>      
+    3.9 滚动行为
+        const router = new VueRouter({
+            routes: [...],
+            scrollBehavior (to, from, savedPosition) {
+                // return 期望滚动到哪个的位置
+                if (savedPosition) {
+                    return savedPosition
+                } else {
+                    return { x: 0, y: 0 }
+                }
+            }
+        })
+    3.10 懒加载
+        1.第一种方式：
+        const index=()=>import("../components/pages/index.vue")
+        const food=()=>import("../components/pages/food.vue")
+        2.第2种方式：
+        const order =()=>Promise.resolve(import('../components/order'))
+
+2.面试题
+    ● vue-router是什么？它有哪些组件？
+    答：Vue Router 是 Vue.js 官方的路由管理器。
+        组件：router-link router-view
+    ● vue-router有哪几种导航钩子？ 他们有哪些参数
+    
+    ● 怎么定义vue-router的动态路由？怎么获取传过来的动态参数？
+        /foodDetail/:id  this.$route.params.id 
+        /foodDetail?id=123 this.$route.query.id
+    ● Vue的路由实现：hash模式 和 history模式的区别？
+    ● $route和$router的区别？
+        $route路由信息
+        $router用来做路由跳转
+
+    补充：
+    1.vue-cli如何使用自定义组件？有遇到过哪些问题？
+        1.Vue.component('',{})
+        2.{
+            components:{
+                '':{}
+            }
+        }
+
+        问题：1.组件名称 vH v-h 
+             2.组件绑定事件，事件不起作用， 解决：1.绑定到组件那边， 2.  .native
+             3.data函数
+             4.标签固定搭配问题，is解决
+             5.组件嵌套内容，slot
+             6.组件样式变成全局，解决：scoped
+    2.请说出vue-cli中src目录每个文件夹和文件的用法
+    3.如何让css只在当前组件起作用？
+    4.如何实现路由懒加载
+    5.如何实现从列表到详情，再返回，数据缓存？如何实现还滚动到原来的位置？??????
+    6.在beforeRouteEnter可以使用this对象吗？
+    7.hash模式和history模式有什么区别***************
+    8.路由拦截如何实现？***********
+    9.keep-alive在哪里用过？?????????
+    10.用户在地址栏输入url,回车到页面出现，整个过程发生了什么？
+        1.DNS解析:将域名解析成IP地址
+        2.TCP连接:TCP的三次握手
+        3.发送HTTP请求
+        4.服务器处理请求并返回HTTP报文
+        5.浏览器解析渲染页面
+        6.断开连接:TCP四次挥手
+    11.webpack开发环境和打包后的环境，有什么区别？
+        
+
+
+=================================================================
+组件：  1.拼接页面组件（left header news） 木偶组件
+        2.参与路由组件(home order mine) pages
+        3.全局组件
+
+
+目录：
+    -src 
+        -assets 静态资源
+            -css 不去修改的css eg：reset.css
+            -js 不去修改的js eg:rem.js
+            -fonts 字体图标
+        -common 公共的资源
+            -css|less|stylus|sass
+                index.css|index.less 整合你的所有的公共css
+                form.css|form.less
+                table.css|table.less 
+                ....
+            -js 
+                API.js 
+                reg.js
+                ajax.js 
+                fn.js
+        -components 组件
+            -common 公共组件
+            -views 木偶组件
+        -filter 过滤器
+            index.js 整合过滤器
+            transTime.js ...
+
+        -pages 路由组件
+        -router 路由
+            index.js
+        App.vue 根组件
+        main.js 入口文件
+===========================================
+美团：
+    1.main.js 
+        引入reset.css rem.js
+    2.配置以及路由
+        pages下面创建你的路由组件 index food foodDetail movie movieDtail 
+        routr/index.js 引入，配置路由
+        app.vue 配置路由出口
+    3.绘制index.vue 
+        定义了一个二级路由出口
+        写了导航
+        创建二级路由用到的组件：home order mine 
+        配置二级路由
+            {
+                path:"/index",
+                children:[....]
+            }
+        把导航拆到components/views/nav.vue
+    4.绘制movie.vue 
+        电影信息是数据，结构分给了components/views/movieItem.vue 
+        电影-》详情 需要传参id 
+            push('/movie-detail?id='item.id+"&a=10")
+    5.外卖food.vue 
+        跳转至详情使用了：动态路由
+
+    6.封装公共组件
+        components/common 
+            index.js 整合公共组件
+            back.vue 
+            search.vue
+        //main.js 
+            引入index.js 
+            for in     
+    7.字体图标
+    8.动画
+        npm i animate.css --save
+        //main.js 
+        import 'animate.css' //如果报错，重新运行
+        <transition>
+            <router-view></router-view>
+        </transition>
